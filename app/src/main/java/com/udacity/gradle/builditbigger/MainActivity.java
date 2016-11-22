@@ -19,10 +19,16 @@ import com.google.api.client.extensions.android.json.AndroidJsonFactory;
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
 import com.google.api.client.googleapis.services.GoogleClientRequestInitializer;
 
+import org.greenrobot.eventbus.EventBus;
+import org.greenrobot.eventbus.Subscribe;
+import org.greenrobot.eventbus.ThreadMode;
+
 import java.io.IOException;
 
 
 public class MainActivity extends ActionBarActivity {
+
+    String joke = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,58 +59,35 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public void tellJoke(View view) {
+    @Override
+    protected void onStart() {
+        super.onStart();
+        EventBus.getDefault().register(this);
+    }
 
-//        JokeWiz jokewiz =new JokeWiz();
-//        String joke = jokewiz.tellJoke();
-//
-//        Toast.makeText(this, joke, Toast.LENGTH_SHORT).show();
+    @Override
+    protected void onStop() {
+        super.onStop();
+        EventBus.getDefault().unregister(this);
+    }
+
+    @Subscribe(threadMode = ThreadMode.MAIN)
+    public void onMessageEvent(MessageEvent event) {
+        joke = event.message;
+
+    }
+
+    public void tellJoke(View view) {
 
         new EndpointsAsyncTask().execute(new Pair<Context, String>(this, "Joking!!"));
 
-
-    }
-}
-class EndpointsAsyncTask extends AsyncTask<Pair<Context, String>, Void, String> {
-    private static MyApi myApiService = null;
-    private Context context;
-
-    @Override
-    protected String doInBackground(Pair<Context, String>... params) {
-        if(myApiService == null) {  // Only do this once
-            MyApi.Builder builder = new MyApi.Builder(AndroidHttp.newCompatibleTransport(),
-                    new AndroidJsonFactory(), null)
-                    // options for running against local devappserver
-                    // - 10.0.2.2 is localhost's IP address in Android emulator
-                    // - turn off compression when running against local devappserver
-                    .setRootUrl("https://jokebackend-deploy.appspot.com/_ah/api/")
-                    .setGoogleClientRequestInitializer(new GoogleClientRequestInitializer() {
-                        @Override
-                        public void initialize(AbstractGoogleClientRequest<?> abstractGoogleClientRequest) throws IOException {
-                            abstractGoogleClientRequest.setDisableGZipContent(true);
-                        }
-                    });
-            // end options for devappserver
-
-            myApiService = builder.build();
-        }
-
-        context = params[0].first;
-        String name = params[0].second;
-
-        try {
-            return myApiService.sayHi(name).execute().getData();
-        } catch (IOException e) {
-            return e.getMessage();
+        if (joke != null) {
+            Intent intent = new Intent(this, JokeActivity.class);
+            intent.putExtra("joke", joke);
+            startActivity(intent);
+        } else {
+            Toast.makeText(this,"Please check Network Connection",Toast.LENGTH_SHORT).show();
         }
     }
-
-    @Override
-    protected void onPostExecute(String result) {
-        Toast.makeText(context, result, Toast.LENGTH_LONG).show();
-
-        Intent intent = new Intent(context, JokeActivity.class);
-        intent.putExtra("joke",result);
-        context.startActivity(intent);
-    }
 }
+
