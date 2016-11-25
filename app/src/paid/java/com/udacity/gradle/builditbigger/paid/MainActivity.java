@@ -1,4 +1,4 @@
-package com.udacity.gradle.builditbigger;
+package com.udacity.gradle.builditbigger.paid;
 
 import android.content.Context;
 import android.content.Intent;
@@ -9,6 +9,8 @@ import android.util.Pair;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Button;
+import android.widget.ProgressBar;
 import android.widget.Toast;
 
 import com.abhishek.dixit.jokeapp.jokebackend.myApi.MyApi;
@@ -18,6 +20,9 @@ import com.google.api.client.extensions.android.http.AndroidHttp;
 import com.google.api.client.extensions.android.json.AndroidJsonFactory;
 import com.google.api.client.googleapis.services.AbstractGoogleClientRequest;
 import com.google.api.client.googleapis.services.GoogleClientRequestInitializer;
+import com.udacity.gradle.builditbigger.EndpointsAsyncTask;
+import com.udacity.gradle.builditbigger.MessageEvent;
+import com.udacity.gradle.builditbigger.R;
 
 import org.greenrobot.eventbus.EventBus;
 import org.greenrobot.eventbus.Subscribe;
@@ -29,11 +34,17 @@ import java.io.IOException;
 public class MainActivity extends ActionBarActivity {
 
     String joke = null;
+    private ProgressBar spinner;
+    private Button button;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        spinner = (ProgressBar)findViewById(R.id.progressBar1);
+        spinner.setVisibility(View.GONE);
+        button = (Button)findViewById(R.id.button1);
     }
 
 
@@ -74,20 +85,27 @@ public class MainActivity extends ActionBarActivity {
     @Subscribe(threadMode = ThreadMode.MAIN)
     public void onMessageEvent(MessageEvent event) {
         joke = event.message;
-
+        getJokeFromAndroidLib();
     }
 
     public void tellJoke(View view) {
-
+//        button.setClickable(false);
+        button.setEnabled(false);
+        spinner.setVisibility(View.VISIBLE);
         new EndpointsAsyncTask().execute(new Pair<Context, String>(this, "Joking!!"));
+    }
 
+    private void getJokeFromAndroidLib(){
         if (joke != null) {
+            spinner.setVisibility(View.GONE);
             Intent intent = new Intent(this, JokeActivity.class);
             intent.putExtra("joke", joke);
             startActivity(intent);
         } else {
-            Toast.makeText(this,"Please check Network Connection",Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Please check Network Connection", Toast.LENGTH_SHORT).show();
         }
+        spinner.setVisibility(View.GONE);
+        button.setEnabled(true);
     }
 }
 

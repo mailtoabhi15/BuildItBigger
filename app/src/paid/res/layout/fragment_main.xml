@@ -10,11 +10,23 @@
         android:layout_height="wrap_content"
         android:text="@string/instructions" />
 
+    <ProgressBar
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="79dp"
+        android:id="@+id/progressBar1"
+        android:layout_below="@+id/button1"
+        android:layout_centerHorizontal="true"/>
+
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/instructions_text_view"
+        android:id="@+id/button1"
         android:onClick="tellJoke"
-        android:text="@string/button_text"/>
-
+        android:text="@string/button_text"
+        android:layout_below="@+id/instructions_text_view"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:enabled="true"/>
 </RelativeLayout>
